@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyCast — Live Global Weather</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       ANIMATED BACKGROUND CANVAS
+  ══════════════════════════════════════ -->
+  <div class="bg-canvas">
+    <div class="bg-gradient" id="bgGrad"></div>
+    <div class="particles-wrap" id="particles"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       APP WRAPPER
+  ══════════════════════════════════════ -->
+  <div class="app-wrap">
+
+    <!-- ── HEADER ── -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-mark">◉</span>
+        <span class="logo-name">SkyCast</span>
+      </div>
+
+      <div class="search-area">
+        <div class="search-box">
+          <svg class="s-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            type="text" id="searchInput" class="s-inp"
+            placeholder="Search any city worldwide…"
+            autocomplete="off" spellcheck="false"
+            aria-label="Search for a city"
+          >
+          <div class="suggestions" id="suggestions" role="listbox" aria-label="City suggestions"></div>
+        </div>
+
+        <button class="icon-btn" id="locateBtn" title="Detect my location" aria-label="Use my location">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="unit-switch" role="group" aria-label="Temperature unit">
+        <button class="u-btn" data-unit="C" aria-pressed="true">°C</button>
+        <button class="u-btn" data-unit="F" aria-pressed="false">°F</button>
+      </div>
+    </header>
+
+    <!-- ── QUICK-ACCESS WORLD CITIES ── -->
+    <nav class="quick-cities" aria-label="Quick city access">
+      <span class="quick-lbl">Quick Access:</span>
+      <div class="quick-btns" id="quickBtns"></div>
+    </nav>
+
+    <!-- ── LOADING STATE ── -->
+    <div class="state-wrap" id="loadingScreen">
+      <div class="spin-ring" role="status" aria-label="Loading weather data"></div>
+      <p class="state-msg">Fetching live weather data…</p>
+    </div>
+
+    <!-- ── ERROR STATE ── -->
+    <div class="state-wrap hidden" id="errorScreen">
+      <div class="err-ico" aria-hidden="true">⚠</div>
+      <p class="state-msg" id="errMsg">Failed to fetch weather data.</p>
+      <button class="retry-btn" id="retryBtn">Try Again</button>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         MAIN DASHBOARD
+    ══════════════════════════════════════ -->
+    <main id="dashboard" class="hidden" aria-label="Weather dashboard">
+
+      <!-- ── HERO: Current Weather ── -->
+      <section class="hero-card" aria-label="Current weather">
+        <div class="hero-glow"></div>
+
+        <div class="hero-left">
+          <div class="hero-loc">
+            <h1 class="hero-city" id="hCity">—</h1>
+            <p class="hero-country" id="hCountry"></p>
+          </div>
+          <p class="hero-dt" id="hDt" aria-live="polite"></p>
+          <div class="hero-extras">
+            <div class="ex-row"><span class="ex-ico">💧</span><span class="ex-lbl">Humidity</span><span class="ex-val" id="hHumid">--%</span></div>
+            <div class="ex-row"><span class="ex-ico">💨</span><span class="ex-lbl">Wind</span><span class="ex-val" id="hWind">-- km/h</span></div>
+            <div class="ex-row"><span class="ex-ico">🌅</span><span class="ex-lbl">Sunrise</span><span class="ex-val" id="hSunrise">--:--</span></div>
+            <div class="ex-row"><span class="ex-ico">🌇</span><span class="ex-lbl">Sunset</span><span class="ex-val" id="hSunset">--:--</span></div>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="hero-cicon" id="hIcon" aria-hidden="true">☀️</div>
+          <div class="hero-temp-row">
+            <span class="hero-temp" id="hTemp">--</span>
+            <span class="hero-unit">°<span id="hUnit">C</span></span>
+          </div>
+          <p class="hero-cond" id="hCond">Loading…</p>
+          <p class="hero-fl">
+            Feels like <b id="hFeels">--</b>° &nbsp;·&nbsp;
+            <span class="hi" id="hMax">--</span>° /
+            <span class="lo" id="hMin">--</span>°
+          </p>
+        </div>
+      </section>
+
+      <!-- ── METRICS GRID ── -->
+      <section class="metrics-grid" aria-label="Weather metrics">
+        <article class="mc" id="mcUV">
+          <div class="mc-ico">☀️</div>
+          <div class="mc-lbl">UV Index</div>
+          <div class="mc-val" id="mUV">--</div>
+          <div class="mc-sub" id="mUVlvl">--</div>
+        </article>
+        <article class="mc" id="mcPres">
+          <div class="mc-ico">🌡️</div>
+          <div class="mc-lbl">Pressure</div>
+          <div class="mc-val" id="mPres">-- hPa</div>
+          <div class="mc-sub" id="mPresTrend">--</div>
+        </article>
+        <article class="mc" id="mcVis">
+          <div class="mc-ico">👁️</div>
+          <div class="mc-lbl">Visibility</div>
+          <div class="mc-val" id="mVis">-- km</div>
+          <div class="mc-sub" id="mVisLvl">--</div>
+        </article>
+        <article class="mc" id="mcAQI">
+          <div class="mc-ico">🌿</div>
+          <div class="mc-lbl">Air Quality</div>
+          <div class="mc-val" id="mAQI">--</div>
+          <div class="mc-sub" id="mAQIlvl">--</div>
+        </article>
+        <article class="mc" id="mcPrecip">
+          <div class="mc-ico">🌧️</div>
+          <div class="mc-lbl">Precipitation</div>
+          <div class="mc-val" id="mPrecip">-- mm</div>
+          <div class="mc-sub" id="mPrecipP">Chance: --%</div>
+        </article>
+        <article class="mc" id="mcCloud">
+          <div class="mc-ico">☁️</div>
+          <div class="mc-lbl">Cloud Cover</div>
+          <div class="mc-val" id="mCloud">--%</div>
+          <div class="mc-bar"><div class="mc-fill" id="mCloudBar"></div></div>
+        </article>
+        <article class="mc" id="mcHum">
+          <div class="mc-ico">💧</div>
+          <div class="mc-lbl">Humidity</div>
+          <div class="mc-val" id="mHum">--%</div>
+          <div class="mc-bar"><div class="mc-fill" id="mHumBar"></div></div>
+        </article>
+        <article class="mc" id="mcWind">
+          <div class="mc-ico">💨</div>
+          <div class="mc-lbl">Wind Speed</div>
+          <div class="mc-val" id="mWind">-- km/h</div>
+          <div class="mc-sub" id="mWindDir">Direction: --</div>
+        </article>
+      </section>
+
+      <!-- ── HOURLY FORECAST ── -->
+      <section class="block" aria-label="Hourly forecast">
+        <h2 class="block-title">Hourly Forecast <span class="block-sub">Next 24 Hours</span></h2>
+        <div class="hourly-rail" id="hourlyRail" role="list"></div>
+      </section>
+
+      <!-- ── 7-DAY FORECAST ── -->
+      <section class="block" aria-label="7-day forecast">
+        <h2 class="block-title">7-Day Forecast <span class="block-sub">Weekly Overview</span></h2>
+        <div class="daily-list" id="dailyList" role="list"></div>
+      </section>
+
+      <!-- ── PINNED LOCATIONS ── -->
+      <section class="block" aria-label="Pinned locations">
+        <h2 class="block-title">
+          Pinned Locations
+          <span class="block-sub">
+            <button class="pin-add-btn" id="pinBtn">＋ Pin This City</button>
+          </span>
+        </h2>
+        <div class="pinned-grid" id="pinnedGrid"></div>
+      </section>
+
+    </main><!-- /#dashboard -->
+  </div><!-- /.app-wrap -->
+
+  <!-- Load scripts in dependency order -->
+  <script src="api.js"></script>
+  <script src="utils.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
